@@ -1,10 +1,10 @@
 from twisted.internet import reactor, task
-import network
+import network,map
 
 class GameClass():
 	
 	plList = {}
-	commands = ["help", "exit", "go north", "hosts", "players", "rename" ]
+	commands = ["help", "exit", "go north", "go south", "hosts", "players", "rename" ]
 
 	def __init__(self):
 		print "- Core init start."
@@ -12,6 +12,10 @@ class GameClass():
 		self.network = network.NetworkClass()
 		self.network.parent = self
 		fact = self.network.child
+		print "- Done."
+		print "- SQL init."
+		self.map = map.MapClass()
+		self.map.parent = self
 		print "- Done."
 		print "---- Core init done."
 		reactor.listenTCP(8023,fact)
@@ -59,6 +63,7 @@ class GameClass():
 			self.sendLine("Use 'rename New Name Here' to rename yourself.",id)
 			self.sendLine("The command 'hosts' will list all connected clients and their ips.",id)
 			self.sendLine("The command 'players' will only list the player names.",id)
+			self.sendLine("Move commands must be preceded with 'go', like 'go north'.",id)
 			self.sendLine("You can quit with 'exit'",id)
 		elif line == "exit":
 			self.sendLine("Goodbye.",id)
@@ -70,8 +75,24 @@ class GameClass():
 		elif line.startswith("rename"):
 			self.renamePlayer(line,id)
 
+
+#FIXME hardcoded
 		elif line == "go north":
-			self.sendLine("You're in a room full of passages, all alike.",id)
+			if self.getPlayer(id).room.id == 1:
+				self.map.getRoom(1).removePlayer(id)
+				self.map.getRoom(2).addPlayer(self.getPlayer(id))
+				self.getPlayer(id).room = self.map.getRoom(2)
+				self.getPlayer(id).look()
+			else:
+				return 0
+		elif line == "go south":
+			if self.getPlayer(id).room.id == 2:
+				self.map.getRoom(2).removePlayer(id)
+				self.map.getRoom(1).addPlayer(self.getPlayer(id))
+				self.getPlayer(id).room = self.map.getRoom(1)
+				self.getPlayer(id).look()
+			else:
+				return 0		
 		return 1
 	
 	def printPrompt(self,id):
@@ -117,7 +138,11 @@ class GameClass():
 		self.sendLine(prcLine,-1)
 	
 	def greet(self,id):
+		self.getPlayer(id).parent = self
 		self.doCommand("help",id)
 		self.sendLine("Everyone, please welcome user #"+str(id)+".",0)
+		self.map.getRoom(1).addPlayer(self.getPlayer(id))
+		self.getPlayer(id).room = self.map.getRoom(1)
+		self.getPlayer(id).look()
 		self.printPrompt(id)
 

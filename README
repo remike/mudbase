@@ -1,6 +1,7 @@
 main.py = launch application.
-base/ = codebase, the library itself. 
-plugins/ or modules/ = planned folder for extensions to the regular codebase
+/base/ = codebase, the library itself. 
+/sql/ = sql databases
+/plugins/ or /modules/ = planned folder for extensions to the regular codebase
 
 base/network.py = network class, controls i/o with clients and the network server.
 	* abstract input/output. It strips control chars and such, and passes lines directly to the client and the game.
@@ -8,11 +9,14 @@ base/game.py = game class, controls all the other classes. A 'manager' class.
 	* game logic will probably not be here, but will be an inherited class of this. 
 base/client.py = client class, controls i/o between client and game. Preprocessing, basically.
 base/player.py = information about player. Names, characters, etc. Player =\= character. Those will be added eventually.
+base/sql.py = SQL access middle-man.
+base/map.py = holder for rooms, also spawner for them from db
+base/room.py = room class, contains players
 
 ----
 
 Next TODO-s:
-	* ! room class, which contains player (to be replaced with character)
+	* ! proper exit/entry for rooms, proper movement inter-room
 	* + character class, which defines a player's character in the world.
 	* - region class, which contains a set of rooms in a particular 'region'
 	* - world class, which contains regions in a particular 'world'
@@ -20,29 +24,3 @@ Next TODO-s:
 ! - immediate
 + - follows
 - - planned
-
-----
-
-mike@mikePC:~$ telnet remike.homelinux.org 8023
-
-Connected to remike.homelinux.org.
-Escape character is '^]'.
-Welcome.
-Do '@message' to output message to all connected clients.
-'exit' to quit.
-> test
-Unrecognised command. Try 'help'?
-> help
-Welcome.
-'@message' will broadcast 'message' globally to all connected clients.
-The command 'hosts' will list all connected clients and their ips.
-You can quit with 'exit'
-> @message goes here
-> hosts
-1 - IPv4Address(TCP, '78.97.34.154', 50662)
-----
-> go north
-Sorry, not yet. ;)
-> exit
-Killed.
-> Connection closed by foreign host.
