@@ -1,5 +1,28 @@
-mike@mikePC:~$ telnet remike.homelinux.org 8023
+main.py = launch application.
+base/ = codebase, the library itself. 
+plugins/ or modules/ = planned folder for extensions to the regular codebase
 
+base/network.py = network class, controls i/o with clients and the network server.
+	* abstract input/output. It strips control chars and such, and passes lines directly to the client and the game.
+base/game.py = game class, controls all the other classes. A 'manager' class.
+	* game logic will probably not be here, but will be an inherited class of this. 
+
+----
+
+Next TODO-s:
+	* ! client class for easy information access.
+	* ! player class, parent to client class
+	* + tile class, which contains player
+	* - map tile (region) class, which contains a set of tiles in a particular 'region'
+	* - world tile class, which contains regions in a particular 'world'
+
+! - immediate
++ - follows
+- - planned
+
+----
+
+mike@mikePC:~$ telnet remike.homelinux.org 8023
 
 Connected to remike.homelinux.org.
 Escape character is '^]'.
