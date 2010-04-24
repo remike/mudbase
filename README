@@ -6,15 +6,16 @@ base/network.py = network class, controls i/o with clients and the network serve
 	* abstract input/output. It strips control chars and such, and passes lines directly to the client and the game.
 base/game.py = game class, controls all the other classes. A 'manager' class.
 	* game logic will probably not be here, but will be an inherited class of this. 
+base/client.py = client class, controls i/o between client and game. Preprocessing, basically.
+base/player.py = information about player. Names, characters, etc. Player =\= character. Those will be added eventually.
 
 ----
 
 Next TODO-s:
-	* ! client class for easy information access.
-	* ! player class, parent to client class
-	* + tile class, which contains player
-	* - map tile (region) class, which contains a set of tiles in a particular 'region'
-	* - world tile class, which contains regions in a particular 'world'
+	* ! room class, which contains player (to be replaced with character)
+	* + character class, which defines a player's character in the world.
+	* - region class, which contains a set of rooms in a particular 'region'
+	* - world class, which contains regions in a particular 'world'
 
 ! - immediate
 + - follows

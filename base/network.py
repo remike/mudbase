@@ -3,6 +3,7 @@ from twisted.conch.telnet import StatefulTelnetProtocol, TelnetTransport
 
 from time import sleep
 
+import client, player
 
 # factory - protocol class
 # protocol/factory -> network class
@@ -17,6 +18,7 @@ class NetworkClass():
 		print "Starting up network server.."
 		#self.protocol is the TYPE of protocol which gets created
 		#it's only the function which gets called, not the actual protocol
+		self.parent = 0
 		self.child = ServerFactory()
 		self.child.protocol = lambda: TelnetTransport(MyProtocol)
 		self.protocol = self.child.protocol
@@ -26,6 +28,7 @@ class NetworkClass():
 		self.clList = self.child.clList
 		print "Factory, protocol and class initialisation done."
 	def newConnection(self,id):
+		self.parent.plList[id] = player.PlayerClass(self.clList[id],"Agent00"+str(id))
 		self.parent.greet(id)
 	def disconnect(self,id):
 		self.clList[id].transport.loseConnection()
@@ -38,6 +41,7 @@ class NetworkClass():
 	def sendData(self,data,id):
 		self.clList[id].transport.write(data)
 	def lineReceived(self,line,id):
+		self.parent.getClient(id).active()
 		err = self.parent.processChat(line,id)
 		if err<0:
 			self.sendLine("Please file a report with the admin. Fatal error.",id)
@@ -50,9 +54,9 @@ class MyProtocol(StatefulTelnetProtocol):
 	def connectionMade(self):
 		print "Connection made to "+str(self.transport.getPeer()) +". "
 		self.id = self.factory.id
-		self.factory.id+=1
-		self.factory.clList[self.id] = self
 		self.parent = self.factory.parent
+		self.factory.id+=1
+		self.factory.clList[self.id] = client.ClientClass(self)
 		self.parent.newConnection(self.id)
 	def lineReceived(self,line):
 		print "Message received: " + line
