@@ -4,7 +4,7 @@ import network,map
 class GameClass():
 	
 	plList = {}
-	commands = ["help", "exit", "go north", "go south", "hosts", "players", "rename" ]
+	commands = ["help", "exit", "go north", "go south", "hosts", "players", "rename", "go east", "climb tree" ]
 
 	def __init__(self):
 		print "- Core init start."
@@ -44,7 +44,7 @@ class GameClass():
 			return self.checkCommand(line,id)
 	
 	def checkCommand(self,line,id=-1,run=1):
-		#FIXME remove this hacky fix
+		#FIXME VERBS remove this hacky fix
 		l = ["a","a"]
 		if line.count(" ")>0:
 			l = line.split(" ",1)
@@ -78,21 +78,13 @@ class GameClass():
 
 #FIXME hardcoded
 		elif line == "go north":
-			if self.getPlayer(id).room.id == 1:
-				self.map.getRoom(1).removePlayer(id)
-				self.map.getRoom(2).addPlayer(self.getPlayer(id))
-				self.getPlayer(id).room = self.map.getRoom(2)
-				self.getPlayer(id).look()
-			else:
-				return 0
+			return self.getPlayer(id).tryMove('go north')
 		elif line == "go south":
-			if self.getPlayer(id).room.id == 2:
-				self.map.getRoom(2).removePlayer(id)
-				self.map.getRoom(1).addPlayer(self.getPlayer(id))
-				self.getPlayer(id).room = self.map.getRoom(1)
-				self.getPlayer(id).look()
-			else:
-				return 0		
+			return self.getPlayer(id).tryMove('go south')	
+		elif line == "go east":
+			return self.getPlayer(id).tryMove('go east')
+		elif line == "climb tree":
+			return self.getPlayer(id).tryMove('climb tree')		
 		return 1
 	
 	def printPrompt(self,id):

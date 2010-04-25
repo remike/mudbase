@@ -8,16 +8,19 @@ base/network.py = network class, controls i/o with clients and the network serve
 base/game.py = game class, controls all the other classes. A 'manager' class.
 	* game logic will probably not be here, but will be an inherited class of this. 
 base/client.py = client class, controls i/o between client and game. Preprocessing, basically.
-base/player.py = information about player. Names, characters, etc. Player =\= character. Those will be added eventually.
+base/player.py = information about player. Name, location, etc. Player =\= user.
 base/sql.py = SQL access middle-man.
 base/map.py = holder for rooms, also spawner for them from db
 base/room.py = room class, contains players
 
+sql/map = map database
+	* rooms - table containing room info
+	* exits - table containing links between rooms
+
 ----
 
 Next TODO-s:
-	* ! proper exit/entry for rooms, proper movement inter-room
-	* + character class, which defines a player's character in the world.
+	* ! user class, containing info about a player's 'account' linked to one player for now
 	* - region class, which contains a set of rooms in a particular 'region'
 	* - world class, which contains regions in a particular 'world'
 

@@ -10,11 +10,32 @@ class PlayerClass():
 	def getName(self):
 		return self.name
 
-	def look(self):
+	def status(self):
 		self.parent.sendLine("You remember you're called "+self.name+".",self.id)
+		self.look()
+
+	def look(self):
 		self.parent.sendLine("     "+self.room.name,self.id)
 		self.parent.sendLine(self.room.desc,self.id)
-		
+		exitList = self.room.getExits()
+		self.parent.sendLine("You see the following exits: " + ','.join(exitList),self.id)
+
+	def tryMove(self,name):
+		#x[0] = id of the dest room
+		#x[1] = description of road
+		x = self.room.checkLink(name)
+		if x:
+			self.movePlayer(x[0],x[1])		
+			return 1		
+		return 0	
+
+	def movePlayer(self,destID,text=0):
+		self.room.removePlayer(self.id)
+		self.parent.map.getRoom(destID).addPlayer(self)
+		self.room = self.parent.map.getRoom(destID)
+		if text:
+			self.parent.sendLine(text,self.id)
+		self.look()
 
 	def rename(self,name):
 		self.name = name

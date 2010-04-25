@@ -5,6 +5,12 @@ class RoomClass():
 		self.name = name
 		self.desc = desc
 		self.plList = {}
+
+	def checkLink(self,name):
+		return self.map.checkLink(self.id,name)
+	
+	def getExits(self):
+		return self.map.getExits(self.id)
 	
 	def getName(self):
 		return self.name
