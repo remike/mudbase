@@ -1,10 +1,12 @@
 from twisted.internet import reactor, task
-import network,map
+import network,map,auth
 
 class GameClass():
 	
 	plList = {}
-	commands = ["help", "exit", "go north", "go south", "hosts", "players", "rename", "go east", "climb tree" ]
+	userList = {}
+	commands = ["help", "exit", "go north", "go south", "hosts", "players", "rename", "go east", "climb tree", "auth",
+			"register" ]
 
 	def __init__(self):
 		print "- Core init start."
@@ -13,9 +15,13 @@ class GameClass():
 		self.network.parent = self
 		fact = self.network.child
 		print "- Done."
-		print "- SQL init."
+		print "- Map init."
 		self.map = map.MapClass()
 		self.map.parent = self
+		print "- Done."
+		print "- Auth init."
+		self.auth = auth.AuthClass()
+		self.auth.parent = self
 		print "- Done."
 		print "---- Core init done."
 		reactor.listenTCP(8023,fact)
@@ -73,8 +79,21 @@ class GameClass():
 		elif line == "players":
 			self.printPlayers(id)
 		elif line.startswith("rename"):
-			self.renamePlayer(line,id)
-
+			if line.count(" "):
+				l = line.split(" ",1)
+				self.renamePlayer(l[1],id)
+				return 1
+			return 0
+		elif line.startswith("auth"):
+			if id not in self.userList:
+				l = line.split(" ",2)
+				return self.auth.userConnected(id,l[1].strip(),l[2].strip())
+			return 0
+		elif line.startswith("register"):
+			if id not in self.userList:
+				l = line.split(" ",2)
+				return self.auth.userRegister(id,l[1].strip(),l[2].strip())
+			return 0
 
 #FIXME hardcoded
 		elif line == "go north":
@@ -97,13 +116,15 @@ class GameClass():
 		#cleanup here TODO
 		self.sendLine("User #"+str(id)+" ("+self.getPlayer(id).name+") has disconnected.",0)
 		del self.plList[id]
+		if id in self.userList:
+			del self.userList[id]
 		self.network.disconnect(id)
 	
 	def renamePlayer(self,line,id):
-		if line.count(" ")>0:
-			l = line.split(" ",1)
-			self.sendLine(self.getPlayer(id).name + " is now known as " + l[1] + ".",-1)
-			self.getPlayer(id).rename(l[1])
+		if self.getPlayer(id).name != line:
+			self.auth.renamePlayer(line,id)
+			self.sendLine(self.getPlayer(id).name + " is now known as " + line + ".",-1)
+			self.getPlayer(id).rename(line)
 	
 	def printHosts(self,id=-1):
 		if id!=-1:
@@ -131,10 +152,14 @@ class GameClass():
 	
 	def greet(self,id):
 		self.getPlayer(id).parent = self
+		self.auth.greetUser(id)
 		self.doCommand("help",id)
 		self.sendLine("Everyone, please welcome user #"+str(id)+".",0)
 		self.map.getRoom(1).addPlayer(self.getPlayer(id))
 		self.getPlayer(id).room = self.map.getRoom(1)
 		self.getPlayer(id).look()
+		self.sendLine("Please login using 'auth name password'.",id)
+		self.sendLine("If you don't have an account, 'register name password'.",id)
+		self.sendLine("The name you're currently using will be the character's name, and the name in the command will be the one you use to log in.",id)
 		self.printPrompt(id)
 

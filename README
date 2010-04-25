@@ -16,11 +16,17 @@ base/room.py = room class, contains players
 sql/map = map database
 	* rooms - table containing room info
 	* exits - table containing links between rooms
+sql/users = user database
+	* users - table containing login info
+	* players - table containing player names and locations
 
 ----
 
 Next TODO-s:
-	* ! user class, containing info about a player's 'account' linked to one player for now
+	* ! text parsing system
+	* ! location in player table, saving and loading of
+	* + creating and modifying rooms on the fly
+	* + Wizard/normal user differentiation
 	* - region class, which contains a set of rooms in a particular 'region'
 	* - world class, which contains regions in a particular 'world'
 
