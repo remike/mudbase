@@ -13,7 +13,10 @@ class AuthClass():
 		self.userList[id] = user.UserClass(id)
 	
 	def renamePlayer(self,name,id):
-		x = self.conn.execute('update players set name = ? where id = ?', [name,self.parent.userList[id][1]])
+		if id in self.parent.userList:
+			x = self.conn.execute('update players set name = ? where id = ?', [name,self.parent.userList[id][1]])
+			return 1
+		return 0
 	
 	def userConnected(self,id,name,password):
 		#id = hostID
@@ -27,7 +30,9 @@ class AuthClass():
 					self.associateUser(id,info[0],info[1],pInfo[0],pInfo[1])
 					self.parent.sendLine("Successfully logged in.",id)
 					return 1
-		self.parent.sendLine("Login failed.",id)		
+			self.parent.sendLine("Login failed. Wrong username/password.",id)
+			return 1
+		self.parent.sendLine("Already logged in.",id)		
 		return 1
 
 	def userRegister(self,id,name,password):
@@ -44,7 +49,9 @@ class AuthClass():
 				self.parent.sendLine("Successfully registered.",id)
 				self.userConnected(id,name,password)
 				return 1
-		self.parent.sendLine("Register failed.")
+			self.parent.sendLine("Register failed.",id)
+			return 1
+		self.parent.sendLine("Already logged in.",id)		
 		return 1
 	
 	def associateUser(self,hostID,userID,userName,playerID,playerName):

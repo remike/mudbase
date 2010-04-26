@@ -1,12 +1,10 @@
 from twisted.internet import reactor, task
-import network,map,auth
+import network,map,auth,parser
 
 class GameClass():
 	
 	plList = {}
 	userList = {}
-	commands = ["help", "exit", "go north", "go south", "hosts", "players", "rename", "go east", "climb tree", "auth",
-			"register" ]
 
 	def __init__(self):
 		print "- Core init start."
@@ -22,6 +20,10 @@ class GameClass():
 		print "- Auth init."
 		self.auth = auth.AuthClass()
 		self.auth.parent = self
+		print "- Done."
+		print "- Parser init."
+		self.parser = parser.ParserClass()
+		self.parser.parent = self
 		print "- Done."
 		print "---- Core init done."
 		reactor.listenTCP(8023,fact)
@@ -43,68 +45,53 @@ class GameClass():
 		return self.getClient(id).transport
 	
 	def processChat(self,line,id=-1):
-		if line.startswith("@"):
-			self.globalChat(line[1:],id)
-			return 1
-		else:
+		success = self.getPlayer(id).tryMove(line)
+		if not success:
 			return self.checkCommand(line,id)
+		return 1
 	
 	def checkCommand(self,line,id=-1,run=1):
-		#FIXME VERBS remove this hacky fix
-		l = ["a","a"]
-		if line.count(" ")>0:
-			l = line.split(" ",1)
-		if line in self.commands or l[0] in self.commands:
-			if run:
-				return self.doCommand(line,id)
-			else:
-				return 0
+		line = self.parser.processLine(line)
+		if line:
+			verb = line[0]
+			modifiers = line[1]
+			return self.doCommand(verb,modifiers,id)
 		else:
-			return 0	
+			return 0
 	
-	def doCommand(self,line,id):
-		if line == "help":
+	def doCommand(self,verb,modifiers,id):
+		#FIXME eventually need to rewrite this
+		if verb == "help":
 			self.sendLine("Welcome.",id)
-			self.sendLine("'@message' will broadcast 'message' globally to all connected clients.",id)
-			self.sendLine("Use 'rename New Name Here' to rename yourself.",id)
+			self.sendLine("'say message' will broadcast 'message' globally to all connected clients.",id)
+			self.sendLine("'auth username password' to log in.",id)
+			self.sendLine("'register username password' to register an account.",id)
+			self.sendLine("Use 'rename New Name Here' to rename yourself after logging in or registering.",id)
 			self.sendLine("The command 'hosts' will list all connected clients and their ips.",id)
 			self.sendLine("The command 'players' will only list the player names.",id)
-			self.sendLine("Move commands must be preceded with 'go', like 'go north'.",id)
 			self.sendLine("You can quit with 'exit'",id)
-		elif line == "exit":
+		elif verb == "exit":
 			self.sendLine("Goodbye.",id)
 			self.disconnect(id)
-		elif line == "hosts":
+		elif verb == "hosts":
 			self.printHosts(id)
-		elif line == "players":
+		elif verb == "players":
 			self.printPlayers(id)
-		elif line.startswith("rename"):
-			if line.count(" "):
-				l = line.split(" ",1)
-				self.renamePlayer(l[1],id)
-				return 1
-			return 0
-		elif line.startswith("auth"):
-			if id not in self.userList:
-				l = line.split(" ",2)
-				return self.auth.userConnected(id,l[1].strip(),l[2].strip())
-			return 0
-		elif line.startswith("register"):
-			if id not in self.userList:
-				l = line.split(" ",2)
-				return self.auth.userRegister(id,l[1].strip(),l[2].strip())
-			return 0
+		elif verb == "rename":
+			self.renamePlayer(" ".join(modifiers),id)
+		elif verb == "auth":
+			return self.auth.userConnected(id,modifiers[0],modifiers[1])
+		elif verb == "register":
+			return self.auth.userRegister(id,modifiers[0],modifiers[1])
+		elif verb == "say":
+			self.globalChat(" ".join(modifiers),id)	
+		elif verb == "look":
+			self.getPlayer(id).look()
+		elif verb == "status":
+			self.getPlayer(id).status()
 
-#FIXME hardcoded
-		elif line == "go north":
-			return self.getPlayer(id).tryMove('go north')
-		elif line == "go south":
-			return self.getPlayer(id).tryMove('go south')	
-		elif line == "go east":
-			return self.getPlayer(id).tryMove('go east')
-		elif line == "climb tree":
-			return self.getPlayer(id).tryMove('climb tree')		
 		return 1
+
 	
 	def printPrompt(self,id):
 		self.network.sendData("> ",id)
@@ -122,9 +109,12 @@ class GameClass():
 	
 	def renamePlayer(self,line,id):
 		if self.getPlayer(id).name != line:
-			self.auth.renamePlayer(line,id)
-			self.sendLine(self.getPlayer(id).name + " is now known as " + line + ".",-1)
-			self.getPlayer(id).rename(line)
+			x = self.auth.renamePlayer(line,id)
+			if x:
+				self.sendLine(self.getPlayer(id).name + " is now known as " + line + ".",-1)
+				self.getPlayer(id).rename(line)
+				return 1
+			self.sendLine("Rename failed. Login first?",id)
 	
 	def printHosts(self,id=-1):
 		if id!=-1:
@@ -153,13 +143,10 @@ class GameClass():
 	def greet(self,id):
 		self.getPlayer(id).parent = self
 		self.auth.greetUser(id)
-		self.doCommand("help",id)
+		self.doCommand("help",[],id)
 		self.sendLine("Everyone, please welcome user #"+str(id)+".",0)
 		self.map.getRoom(1).addPlayer(self.getPlayer(id))
 		self.getPlayer(id).room = self.map.getRoom(1)
 		self.getPlayer(id).look()
-		self.sendLine("Please login using 'auth name password'.",id)
-		self.sendLine("If you don't have an account, 'register name password'.",id)
-		self.sendLine("The name you're currently using will be the character's name, and the name in the command will be the one you use to log in.",id)
 		self.printPrompt(id)
 

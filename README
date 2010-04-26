@@ -12,6 +12,7 @@ base/player.py = information about player. Name, location, etc. Player =\= user.
 base/sql.py = SQL access middle-man.
 base/map.py = holder for rooms, also spawner for them from db
 base/room.py = room class, contains players
+base/parser.py = parser class, handles verbs and such
 
 sql/map = map database
 	* rooms - table containing room info
@@ -23,7 +24,6 @@ sql/users = user database
 ----
 
 Next TODO-s:
-	* ! text parsing system
 	* ! location in player table, saving and loading of
 	* + creating and modifying rooms on the fly
 	* + Wizard/normal user differentiation
