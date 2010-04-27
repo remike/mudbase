@@ -13,7 +13,8 @@ class ParserClass():
 				'climb': 'climb',
 				'say': 'say',
 				'look': 'look',
-				'status': 'status'
+				'status': 'status',
+				'wizard': 'wizard'
 			}
 	
 	# verb modifier modifiers

@@ -79,6 +79,21 @@ class GameClass():
 				self.printHelp(id)
 			elif verb == "look":
 				self.getPlayer(id).look()
+
+			#FIXME v this
+			#wizard create room here Room1 Room1desc LinkName LinkDescription 1 1
+			elif verb == "wizard" and modifiers[0] == "create" and modifiers[1] == "room":
+				#self.map.createRoom(origin,name,desc,exitName,exitDesc,exitObvious,twoWay
+				if modifiers[2] == "here":
+					origin = self.getPlayer(id).room.id
+				else:
+					origin = modifiers[2]
+				self.map.createRoom(origin,modifiers[3],modifiers[4],modifiers[5],
+					modifiers[6],modifiers[7],modifiers[8])
+				return 1
+			elif verb == "wizard" and modifier[0] == "delete" and modifiers[1] == "room":
+				self.map.deleteRoom(int(modifiers[2]))
+			#FIXME ^ this
 		else:
 			if verb == "help":
 				self.printHelp(id)
@@ -104,6 +119,7 @@ class GameClass():
 		self.sendLine("The command 'hosts' will list all connected clients and their ips. Registered users only.",id)
 		self.sendLine("The command 'players' will only list the player names. Registered users only.",id)
 		self.sendLine("You can quit with 'exit'.",id)	
+		self.sendLine("wizard create room here Room1 Room1desc LinkName LinkDescription 1 1",id)
 
 	def printPrompt(self,id):
 		self.network.sendData("> ",id)

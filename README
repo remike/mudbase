@@ -24,10 +24,11 @@ sql/users = user database
 ----
 
 Next TODO-s:
-	* ! creating and modifying rooms on the fly
-	* + Wizard/normal user differentiation
+	* ! items
 	* - region class, which contains a set of rooms in a particular 'region'
 	* - world class, which contains regions in a particular 'world'
+	* - Wizard/normal user differentiation
+	* - creating and modifying rooms on the fly
 
 ! - immediate
 + - follows
