@@ -11,7 +11,7 @@ class MapClass():
 		self.createRooms()
 	
 	def createRooms(self):
-		c = self.conn.select('select * from rooms order by id')
+		c = self.conn.select('select id,name,desc from rooms order by id')
 		for row in c:
 			self.roomList[row[0]] = room.RoomClass(row[0],row[1],row[2])
 			self.roomList[row[0]].map = self
@@ -35,6 +35,12 @@ class MapClass():
 	
 	def getRoom(self,id):
 		return self.roomList[id]
+	
+	def hasRoom(self,id):
+		if id in self.roomList:
+			return 1
+		else: 
+			return 0
 	
 	
 	

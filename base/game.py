@@ -61,38 +61,50 @@ class GameClass():
 	
 	def doCommand(self,verb,modifiers,id):
 		#FIXME eventually need to rewrite this
-		if verb == "help":
-			self.sendLine("Welcome.",id)
-			self.sendLine("'say message' will broadcast 'message' globally to all connected clients.",id)
-			self.sendLine("'auth username password' to log in.",id)
-			self.sendLine("'register username password' to register an account.",id)
-			self.sendLine("Use 'rename New Name Here' to rename yourself after logging in or registering.",id)
-			self.sendLine("The command 'hosts' will list all connected clients and their ips.",id)
-			self.sendLine("The command 'players' will only list the player names.",id)
-			self.sendLine("You can quit with 'exit'",id)
-		elif verb == "exit":
-			self.sendLine("Goodbye.",id)
-			self.disconnect(id)
-		elif verb == "hosts":
-			self.printHosts(id)
-		elif verb == "players":
-			self.printPlayers(id)
-		elif verb == "rename":
-			self.renamePlayer(" ".join(modifiers),id)
-		elif verb == "auth":
-			return self.auth.userConnected(id,modifiers[0],modifiers[1])
-		elif verb == "register":
-			return self.auth.userRegister(id,modifiers[0],modifiers[1])
-		elif verb == "say":
-			self.globalChat(" ".join(modifiers),id)	
-		elif verb == "look":
-			self.getPlayer(id).look()
-		elif verb == "status":
-			self.getPlayer(id).status()
 
+		if self.auth.checkUser(id) == 1:
+			if verb == "hosts":
+				self.printHosts(id)
+			elif verb == "players":
+				self.printPlayers(id)
+			elif verb == "rename":
+				self.renamePlayer(" ".join(modifiers),id)
+			elif verb == "status":
+				self.getPlayer(id).status()
+			elif verb == "say":
+				self.globalChat(" ".join(modifiers),id)	
+			elif verb == "exit":
+				self.disconnect(id)
+			elif verb == "help":
+				self.printHelp(id)
+			elif verb == "look":
+				self.getPlayer(id).look()
+		else:
+			if verb == "help":
+				self.printHelp(id)
+			elif verb == "exit":
+				self.disconnect(id)
+			elif verb == "auth":
+				return self.auth.userConnected(id,modifiers[0],modifiers[1])
+			elif verb == "register":
+				return self.auth.userRegister(id,modifiers[0],modifiers[1])
+			elif verb == "look":
+				self.getPlayer(id).look()
+			else:
+				self.sendLine("You must be registered to use this command.",id)
 		return 1
 
-	
+
+	def printHelp(self,id):
+		self.sendLine("Welcome.",id)
+		self.sendLine("'say message' will broadcast 'message' globally to all connected clients.",id)
+		self.sendLine("'auth username password' to log in.",id)
+		self.sendLine("'register username password' to register an account.",id)
+		self.sendLine("Use 'rename New Name Here' to rename yourself after logging in or registering.",id)
+		self.sendLine("The command 'hosts' will list all connected clients and their ips. Registered users only.",id)
+		self.sendLine("The command 'players' will only list the player names. Registered users only.",id)
+		self.sendLine("You can quit with 'exit'.",id)	
+
 	def printPrompt(self,id):
 		self.network.sendData("> ",id)
 	
@@ -101,6 +113,7 @@ class GameClass():
 		
 	def disconnect(self,id):
 		#cleanup here TODO
+		self.sendLine("Goodbye.",id)
 		self.sendLine("User #"+str(id)+" ("+self.getPlayer(id).name+") has disconnected.",0)
 		del self.plList[id]
 		if id in self.userList:
@@ -142,11 +155,10 @@ class GameClass():
 	
 	def greet(self,id):
 		self.getPlayer(id).parent = self
-		self.auth.greetUser(id)
+		self.map.getRoom(0).addPlayer(self.getPlayer(id))
+		self.getPlayer(id).room = self.map.getRoom(0)
 		self.doCommand("help",[],id)
 		self.sendLine("Everyone, please welcome user #"+str(id)+".",0)
-		self.map.getRoom(1).addPlayer(self.getPlayer(id))
-		self.getPlayer(id).room = self.map.getRoom(1)
 		self.getPlayer(id).look()
 		self.printPrompt(id)
 

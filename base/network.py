@@ -59,7 +59,7 @@ class MyProtocol(StatefulTelnetProtocol):
 		self.factory.clList[self.id] = client.ClientClass(self)
 		self.parent.newConnection(self.id)
 	def lineReceived(self,line):
-		print "Message received: " + line
+		print "Message received ("+self.id+"): " + line
 		self.parent.lineReceived(line.strip(),self.id)
 		self.clearLineBuffer()
 	def connectionLost(self,reason):

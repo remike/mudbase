@@ -24,8 +24,7 @@ sql/users = user database
 ----
 
 Next TODO-s:
-	* ! location in player table, saving and loading of
-	* + creating and modifying rooms on the fly
+	* ! creating and modifying rooms on the fly
 	* + Wizard/normal user differentiation
 	* - region class, which contains a set of rooms in a particular 'region'
 	* - world class, which contains regions in a particular 'world'

@@ -8,9 +8,17 @@ class AuthClass():
 		os.chdir('sql')
 		self.conn = sql.SQLClass('users')
 		os.chdir('..')
+
+	def plantPlayer(self,id):
+		list = self.conn.select('select room from players where id = ?',[self.parent.userList[id][1]]).fetchone()
+		if self.parent.map.hasRoom(list[0]):
+			self.parent.getPlayer(id).movePlayer(list[0],'You feel yourself fading out, then back in.')
+		else:
+			self.parent.getPlayer(id).movePlayer(1,'You feel yourself fading out, then back in.')
 	
 	def greetUser(self,id):
 		self.userList[id] = user.UserClass(id)
+		self.plantPlayer(id)
 	
 	def renamePlayer(self,name,id):
 		if id in self.parent.userList:
@@ -57,5 +65,12 @@ class AuthClass():
 	def associateUser(self,hostID,userID,userName,playerID,playerName):
 		self.parent.userList[hostID]=[userID,playerID]
 		self.parent.renamePlayer(playerName,hostID)
+		self.greetUser(hostID)
 		print "Logged in user #"+str(userID)
+	
+	def checkUser(self,id):
+		if id not in self.parent.userList:
+			return 0
+		else:
+			return 1
 		

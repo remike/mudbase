@@ -18,7 +18,8 @@ class PlayerClass():
 		self.parent.sendLine("     "+self.room.name,self.id)
 		self.parent.sendLine(self.room.desc,self.id)
 		exitList = self.room.getExits()
-		self.parent.sendLine("You see the following exits: " + ','.join(exitList),self.id)
+		if exitList != []:
+			self.parent.sendLine("You see the following exits: " + ','.join(exitList),self.id)
 
 	def tryMove(self,name):
 		#x[0] = id of the dest room
@@ -35,12 +36,16 @@ class PlayerClass():
 		self.room = self.parent.map.getRoom(destID)
 		if text:
 			self.parent.sendLine(text,self.id)
+		if destID != 0:
+			self.parent.auth.conn.execute('update players set room = ? where id = ?',[destID,self.parent.userList[self.id][1]])
 		self.look()
 
 	def rename(self,name):
 		self.name = name
 
 	def disconnect(self,reason):
+		self.parent.auth.conn.execute('update players set room = ? where id = ?',
+			[self.room.id,self.parent.userList[self.id][1]])
 		self.client.disconnect(reason)		
 	
 	def sendLine(self,line):
