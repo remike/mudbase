@@ -14,7 +14,9 @@ class ParserClass():
 				'say': 'say',
 				'look': 'look',
 				'status': 'status',
-				'wizard': 'wizard'
+				'wizard': 'wizard',
+				'inventory': 'inventory',
+				'drop': 'drop'
 			}
 	
 	# verb modifier modifiers

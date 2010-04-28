@@ -54,6 +54,11 @@ class MapClass():
 			return [x[1],x[3]]
 		return 0
 		
+
+	def addItem(self,item,id):
+		pass
+		#TODO self.conn.execute('update rooms set items = ? where id = ?',[
+		
 	def getExits(self,id):
 		x = self.conn.select('select name from exits where src=? and obvious=1',[id])
 		exitList = [ ]

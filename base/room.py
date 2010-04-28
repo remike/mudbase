@@ -5,9 +5,23 @@ class RoomClass():
 		self.name = name
 		self.desc = desc
 		self.plList = {}
+		self.itemList = {}
 
 	def checkLink(self,name):
 		return self.map.checkLink(self.id,name)
+	
+	def addItem(self,item):
+		self.itemList[item.id] = item
+		self.map.addItem(item,self.id)
+
+	def emptyItems(self):
+		self.itemList = { }
+
+	def getItems(self):
+		i = ""
+		for id in self.itemList:
+			i += self.itemList[id].name + ", "
+		return i
 	
 	def getExits(self):
 		return self.map.getExits(self.id)

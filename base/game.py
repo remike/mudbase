@@ -1,5 +1,5 @@
 from twisted.internet import reactor, task
-import network,map,auth,parser
+import network,map,auth,parser,inventory
 
 class GameClass():
 	
@@ -24,6 +24,10 @@ class GameClass():
 		print "- Parser init."
 		self.parser = parser.ParserClass()
 		self.parser.parent = self
+		print "- Done."
+		print "- Inventory init."
+		self.inventory = inventory.InventoryClass()
+		self.inventory.parent = self
 		print "- Done."
 		print "---- Core init done."
 		reactor.listenTCP(8023,fact)
@@ -79,6 +83,10 @@ class GameClass():
 				self.printHelp(id)
 			elif verb == "look":
 				self.getPlayer(id).look()
+			elif verb == "inventory":
+				self.getPlayer(id).listInventory()
+			elif verb == "drop":
+				self.getPlayer(id).dropItem(modifiers[0])
 
 			#FIXME v this
 			#wizard create room here Room1 Room1desc LinkName LinkDescription 1 1
@@ -164,6 +172,16 @@ class GameClass():
 			self.sendLine("  "+self.getPlayer(pl).name,id)
 		self.sendLine("----",id)
 
+	def addPlayerItem(self,name,desc,weight,id):
+		print "Adding item."
+		itemID = self.inventory.addItem(name,desc,500)
+		self.getPlayer(id).addItem(self.inventory.getItem(itemID))
+	
+	def addRoomItem(self,name,desc,weight,id):
+		print "Adding item to room."
+		item = self.inventory.addItem(name,desc,500)
+		item = self.inventory.getItem(item)
+		self.map.getRoom(id).addItem(item)
 	
 	def globalChat(self,line,id):
 		prcLine = "Global message from "+self.getPlayer(id).getName()+": "+line
@@ -175,6 +193,11 @@ class GameClass():
 		self.getPlayer(id).room = self.map.getRoom(0)
 		self.doCommand("help",[],id)
 		self.sendLine("Everyone, please welcome user #"+str(id)+".",0)
+		self.getPlayer(id).emptyItems()
+		self.addPlayerItem('test cube',"It's weighted, but not a companion. The doctor is sad because" +
+			" of this. Good for testing item behavior.",500,id)
+		self.map.getRoom(2).emptyItems()
+		self.addRoomItem('refrigerator',"A plain refrigerator.",10000,2)
 		self.getPlayer(id).look()
 		self.printPrompt(id)
 
