@@ -1,52 +1,42 @@
 from twisted.internet import reactor, task
-import network,map,auth,parser,inventory
+import network,map,auth,parser,inventory,access
 
 class GameClass():
 	
 	plList = {}
-	userList = {}
 
 	def __init__(self):
 		print "- Core init start."
-		print "- Network init."
-		self.network = network.NetworkClass()
-		self.network.parent = self
-		fact = self.network.child
-		print "- Done."
-		print "- Map init."
-		self.map = map.MapClass()
-		self.map.parent = self
-		print "- Done."
-		print "- Auth init."
-		self.auth = auth.AuthClass()
-		self.auth.parent = self
-		print "- Done."
-		print "- Parser init."
-		self.parser = parser.ParserClass()
-		self.parser.parent = self
-		print "- Done."
-		print "- Inventory init."
-		self.inventory = inventory.InventoryClass()
-		self.inventory.parent = self
-		print "- Done."
-		print "---- Core init done."
-		reactor.listenTCP(8023,fact)
+		print "-- Access module start."
+		self.access = access.AccessClass(self)
+		self.network = self.access.network
+		self.map = self.access.map
+		self.auth = self.access.auth
+		self.parser = self.access.parser
+		print "- Core init done."
+		reactor.listenTCP(8024,self.network.child)
 		self.schedule = task.LoopingCall(self.idleTest)
 		self.schedule.start(60.0)
 		reactor.run()
-	
+
+	#scheduled things	
 	def idleTest(self):
 		for id in self.plList:
 			self.getClient(id).idleOut()
 	
+	#adaptation for access things
+	def getUsers(self):
+		return self.access.getUsers()
 	def getPlayer(self,id):
-		return self.plList[id]
-	
+		return self.access.getPlayer(id)
 	def getClient(self,id):
-		return self.plList[id].client
-	
+		return self.access.getClient(id)
 	def getTransport(self,id):
-		return self.getClient(id).transport
+		return self.access.getTransport(id)
+	def sendLine(self,line,id):
+		self.access.sendLine(line,id)
+
+	#others
 	
 	def processChat(self,line,id=-1):
 		success = self.getPlayer(id).tryMove(line)
@@ -131,27 +121,20 @@ class GameClass():
 
 	def printPrompt(self,id):
 		self.network.sendData("> ",id)
-	
-	def sendLine(self,line,id):
-		self.network.sendLine(line,id)
 		
 	def disconnect(self,id):
 		#cleanup here TODO
 		self.sendLine("Goodbye.",id)
 		self.sendLine("User #"+str(id)+" ("+self.getPlayer(id).name+") has disconnected.",0)
 		del self.plList[id]
-		if id in self.userList:
-			del self.userList[id]
+		if id in self.getUsers():
+			del self.auth.userList[id]
 		self.network.disconnect(id)
 	
 	def renamePlayer(self,line,id):
-		if self.getPlayer(id).name != line:
-			x = self.auth.renamePlayer(line,id)
-			if x:
-				self.sendLine(self.getPlayer(id).name + " is now known as " + line + ".",-1)
-				self.getPlayer(id).rename(line)
-				return 1
-			self.sendLine("Rename failed. Login first?",id)
+		self.access.renamePlayer(line,id)
+		
+			
 	
 	def printHosts(self,id=-1):
 		if id!=-1:
@@ -171,17 +154,6 @@ class GameClass():
 		for pl in self.plList:
 			self.sendLine("  "+self.getPlayer(pl).name,id)
 		self.sendLine("----",id)
-
-	def addPlayerItem(self,name,desc,weight,id):
-		print "Adding item."
-		itemID = self.inventory.addItem(name,desc,500)
-		self.getPlayer(id).addItem(self.inventory.getItem(itemID))
-	
-	def addRoomItem(self,name,desc,weight,id):
-		print "Adding item to room."
-		item = self.inventory.addItem(name,desc,500)
-		item = self.inventory.getItem(item)
-		self.map.getRoom(id).addItem(item)
 	
 	def globalChat(self,line,id):
 		prcLine = "Global message from "+self.getPlayer(id).getName()+": "+line
@@ -193,11 +165,6 @@ class GameClass():
 		self.getPlayer(id).room = self.map.getRoom(0)
 		self.doCommand("help",[],id)
 		self.sendLine("Everyone, please welcome user #"+str(id)+".",0)
-		self.getPlayer(id).emptyItems()
-		self.addPlayerItem('test cube',"It's weighted, but not a companion. The doctor is sad because" +
-			" of this. Good for testing item behavior.",500,id)
-		self.map.getRoom(2).emptyItems()
-		self.addRoomItem('refrigerator',"A plain refrigerator.",10000,2)
 		self.getPlayer(id).look()
 		self.printPrompt(id)
 
