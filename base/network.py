@@ -1,8 +1,6 @@
 from twisted.internet.protocol import ServerFactory, Protocol
 from twisted.conch.telnet import StatefulTelnetProtocol, TelnetTransport
 
-from time import sleep
-
 import client, player
 
 # factory - protocol class
@@ -11,8 +9,6 @@ import client, player
 # Requests and callbacks go down in the list. 
 
 class NetworkClass():
-
-	
 	
 	def __init__(self):
 		print "Starting up network server.."
@@ -27,8 +23,14 @@ class NetworkClass():
 		self.child.parent = self
 		self.clList = self.child.clList
 		print "Factory, protocol and class initialisation done."
+	
+	#adaptations
+	def getClient(self,id):
+		return self.access.getClient(id)
+
+
 	def newConnection(self,id):
-		self.parent.plList[id] = player.PlayerClass(self.clList[id],"Agent00"+str(id))
+		self.access.auth.plList[id] = player.PlayerClass(self.clList[id],"Agent00"+str(id))
 		self.parent.greet(id)
 	def disconnect(self,id):
 		self.clList[id].transport.loseConnection()
@@ -41,7 +43,7 @@ class NetworkClass():
 	def sendData(self,data,id):
 		self.clList[id].transport.write(data)
 	def lineReceived(self,line,id):
-		self.parent.getClient(id).active()
+		self.getClient(id).active()
 		err = self.parent.processChat(line,id)
 		if err<0:
 			self.sendLine("Please file a report with the admin. Fatal error.",id)

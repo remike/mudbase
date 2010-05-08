@@ -3,6 +3,9 @@ main.py = launch application.
 /sql/ = sql databases
 /plugins/ or /modules/ = planned folder for extensions to the regular codebase
 
+
+base/access.py = access class, abstractises connections between modules, most requests go through this
+
 base/network.py = network class, controls i/o with clients and the network server.
 	* abstract input/output. It strips control chars and such, and passes lines directly to the client and the game.
 base/game.py = game class, controls all the other classes. A 'manager' class.
@@ -24,7 +27,9 @@ sql/users = user database
 ----
 
 Next TODO-s:
-	* ! items
+	* ! parser development
+	* + verb development
+	* # items
 	* - region class, which contains a set of rooms in a particular 'region'
 	* - world class, which contains regions in a particular 'world'
 	* - Wizard/normal user differentiation
@@ -33,3 +38,4 @@ Next TODO-s:
 ! - immediate
 + - follows
 - - planned
+# - put off

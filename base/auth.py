@@ -11,6 +11,7 @@ class AuthClass():
 	def __init__(self):
 		self.userList = {}
 		self.userInfo = {}
+		self.plList = {}
 		
 		os.chdir('sql')
 		self.conn = sql.SQLClass('users')
@@ -27,10 +28,12 @@ class AuthClass():
 		return self.access.getPlayer(id)
 	def sendLine(self,line,id):
 		self.access.sendLine(line,id)
+	def hasRoom(self,id):
+		return self.access.hasRoom(id)
 
 	def plantPlayer(self,id):
 		list = self.conn.select('select room from players where id = ?',[self.getUserInfo(id)[1]]).fetchone()
-		if self.parent.map.hasRoom(list[0]):
+		if self.hasRoom(list[0]):
 			self.getPlayer(id).movePlayer(list[0],'You feel yourself fading out, then back in.')
 		else:
 			self.getPlayer(id).movePlayer(1,'You feel yourself fading out, then back in.')
@@ -48,6 +51,8 @@ class AuthClass():
 					self.sendLine(self.getPlayer(id).name + " is now known as " + name + ".",-1)
 					self.getPlayer(id).rename(name)
 					return 1
+				return 1
+			return 1
 		self.sendLine("Rename failed. Login first?",id)	
 		return 0
 	

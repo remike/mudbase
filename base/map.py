@@ -10,6 +10,12 @@ class MapClass():
 		self.conn = sql.SQLClass('map')
 		os.chdir('..')
 		self.createRooms()
+
+	#adaptations
+	def getRooms(self):
+		return self.access.getRooms()
+	def getRoom(self,id):
+		return self.access.getRoom(id)
 	
 	def createRooms(self):
 		c = self.conn.select('select id,name,desc from rooms order by id')
@@ -43,7 +49,7 @@ class MapClass():
 		self.conn.execute("delete from exits where src = ? or dest = ?",[roomID,roomID])
 		players = self.map.auth.conn.select("select id from players where room = ?",[roomID])
 		for row in players.fetchall():
-			self.map.auth.plantPlayer(row[0])
+			self.access.auth.plantPlayer(row[0])
 		print "Room deleted."
 	#FIXME ^ this
 					
@@ -54,26 +60,15 @@ class MapClass():
 			return [x[1],x[3]]
 		return 0
 		
-
-	def addItem(self,item,id):
-		pass
-		#TODO self.conn.execute('update rooms set items = ? where id = ?',[
-		
 	def getExits(self,id):
 		x = self.conn.select('select name from exits where src=? and obvious=1',[id])
 		exitList = [ ]
 		for exit in x.fetchall():
 			exitList.append(exit[0])
 		return exitList
-
-	def getRooms(self):
-		return self.roomList
-	
-	def getRoom(self,id):
-		return self.roomList[id]
 	
 	def hasRoom(self,id):
-		if id in self.roomList:
+		if id in self.getRooms():
 			return 1
 		else: 
 			return 0

@@ -28,8 +28,6 @@ class AccessClass():
 		print "--- Done."
 
 	#game.py
-	def getPlayer(self,id):
-		return self.parent.plList[id]
 	def getClient(self,id):
 		return self.parent.plList[id].client
 	def getTransport(self,id):
@@ -38,6 +36,10 @@ class AccessClass():
 		self.network.sendLine(line,id)
 
 	#auth.py
+	def getPlayers(self):
+		return self.auth.plList
+	def getPlayer(self,id):
+		return self.auth.plList[id]
 	def getUserInfo(self,id):
 		return self.auth.userInfo[id]
 	def getUser(self,id):
@@ -46,5 +48,17 @@ class AccessClass():
 		return self.auth.userList
 	def renamePlayer(self,name,id):
 		self.auth.renamePlayer(name,id)
+	
+	#map.py
+	def getRoom(self,id):
+		return self.map.roomList[id]
+	def getRooms(self):
+		return self.map.roomList
+	def checkLink(self,id,name):
+		return self.map.checkLink(id,name)
+	def getExits(self,id):
+		return self.map.getExits(id)
+	def hasRoom(self,id):
+		return self.map.hasRoom(id)
 
 	

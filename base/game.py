@@ -1,9 +1,7 @@
 from twisted.internet import reactor, task
-import network,map,auth,parser,inventory,access
+import network,map,auth,parser,access
 
 class GameClass():
-	
-	plList = {}
 
 	def __init__(self):
 		print "- Core init start."
@@ -13,6 +11,8 @@ class GameClass():
 		self.map = self.access.map
 		self.auth = self.access.auth
 		self.parser = self.access.parser
+		#DEBUG
+		self.plList = self.auth.plList
 		print "- Core init done."
 		reactor.listenTCP(8024,self.network.child)
 		self.schedule = task.LoopingCall(self.idleTest)
@@ -21,7 +21,7 @@ class GameClass():
 
 	#scheduled things	
 	def idleTest(self):
-		for id in self.plList:
+		for id in self.getPlayers():
 			self.getClient(id).idleOut()
 	
 	#adaptation for access things
@@ -29,12 +29,16 @@ class GameClass():
 		return self.access.getUsers()
 	def getPlayer(self,id):
 		return self.access.getPlayer(id)
+	def getPlayers(self):
+		return self.access.getPlayers()
 	def getClient(self,id):
 		return self.access.getClient(id)
 	def getTransport(self,id):
 		return self.access.getTransport(id)
 	def sendLine(self,line,id):
 		self.access.sendLine(line,id)
+	def getRoom(self,id):
+		return self.access.getRoom(id)
 
 	#others
 	
@@ -73,10 +77,6 @@ class GameClass():
 				self.printHelp(id)
 			elif verb == "look":
 				self.getPlayer(id).look()
-			elif verb == "inventory":
-				self.getPlayer(id).listInventory()
-			elif verb == "drop":
-				self.getPlayer(id).dropItem(modifiers[0])
 
 			#FIXME v this
 			#wizard create room here Room1 Room1desc LinkName LinkDescription 1 1
@@ -126,7 +126,7 @@ class GameClass():
 		#cleanup here TODO
 		self.sendLine("Goodbye.",id)
 		self.sendLine("User #"+str(id)+" ("+self.getPlayer(id).name+") has disconnected.",0)
-		del self.plList[id]
+		del self.auth.plList[id]
 		if id in self.getUsers():
 			del self.auth.userList[id]
 		self.network.disconnect(id)
@@ -134,11 +134,9 @@ class GameClass():
 	def renamePlayer(self,line,id):
 		self.access.renamePlayer(line,id)
 		
-			
-	
 	def printHosts(self,id=-1):
 		if id!=-1:
-			for pl in self.plList:
+			for pl in self.getPlayers():
 				x = str(pl) + " - "
 				x = self.getPlayer(pl).name + " - "
 				x += self.getClient(pl).ip
@@ -151,7 +149,7 @@ class GameClass():
 
 	def printPlayers(self,id=-1):
 		self.sendLine("There are "+str(len(self.plList))+" players online at the moment.",id)
-		for pl in self.plList:
+		for pl in self.getPlayers():
 			self.sendLine("  "+self.getPlayer(pl).name,id)
 		self.sendLine("----",id)
 	
@@ -161,8 +159,8 @@ class GameClass():
 	
 	def greet(self,id):
 		self.getPlayer(id).parent = self
-		self.map.getRoom(0).addPlayer(self.getPlayer(id))
-		self.getPlayer(id).room = self.map.getRoom(0)
+		self.getRoom(0).addPlayer(self.getPlayer(id))
+		self.getPlayer(id).room = self.getRoom(0)
 		self.doCommand("help",[],id)
 		self.sendLine("Everyone, please welcome user #"+str(id)+".",0)
 		self.getPlayer(id).look()

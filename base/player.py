@@ -12,6 +12,8 @@ class PlayerClass():
 		self.parent.sendLine(line,id)
 	def getUserInfo(self,id):
 		return self.parent.getUserInfo(id)
+	def getRoom(self,id):
+		return self.parent.access.getRoom(id)
 	
 	def getName(self):
 		return self.name
@@ -34,12 +36,12 @@ class PlayerClass():
 		if x:
 			self.movePlayer(x[0],x[1])
 			return 1		
-		return 0	
+		return 0
 
 	def movePlayer(self,destID,text=0):
 		self.room.removePlayer(self.id)
-		self.parent.access.map.getRoom(destID).addPlayer(self)
-		self.room = self.parent.access.map.getRoom(destID)
+		self.getRoom(destID).addPlayer(self)
+		self.room = self.getRoom(destID)
 		if text:
 			self.sendLine(text,self.id)
 		if destID != 0:
